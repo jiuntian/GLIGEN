@@ -27,6 +27,11 @@ except:
     pass  
 # = = = = = = = = = = = = = = = = = = useful functions = = = = = = = = = = = = = = = = = #
 
+import contextlib
+
+@contextlib.contextmanager
+def dummy_context_mgr():
+    yield None
 
 
 class ImageCaptionSaver:
@@ -376,17 +381,26 @@ class Trainer:
 
         iterator = tqdm(range(self.starting_iter, self.config.total_iters), desc='Training progress',  disable=get_rank() != 0 )
         self.model.train()
-        for iter_idx in iterator: # note: iter_idx is not from 0 if resume training
+        for iter_idx in iterator:  # note: iter_idx is not from 0 if resume training
             self.iter_idx = iter_idx
 
-            self.opt.zero_grad()
             batch = next(self.loader_train)
             batch_to_device(batch, self.device)
 
-            loss = self.run_one_step(batch)
-            loss.backward()
-            self.opt.step() 
-            self.scheduler.step()
+            if (iter_idx + 1) % self.config.gradient_accumulation_step == 0 or \
+                    (iter_idx == self.config.total_iters - 1):
+                loss = self.run_one_step(batch)
+                loss = loss / self.config.gradient_accumulation_step
+                loss.backward()
+                self.opt.step()
+                self.scheduler.step()
+                self.opt.zero_grad()
+            else:
+                with self.model.no_sync() if self.config.distributed else dummy_context_mgr():
+                    loss = self.run_one_step(batch)
+                    loss = loss / self.config.gradient_accumulation_step
+                    loss.backward()
+
             if self.config.enable_ema:
                 update_ema(self.ema_params, self.master_params, self.config.ema_rate)
 

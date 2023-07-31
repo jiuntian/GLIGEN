@@ -134,6 +134,13 @@ class DatasetCatalog:
             ),
         }
 
+        self.HOIGrounding = {
+            "target": "dataset.hico_dataset.HICODataset",
+            "train_params": dict(
+                dataset_path=os.path.join(ROOT,'hico_det_clip'),
+            ),
+        }
+
 
 
 

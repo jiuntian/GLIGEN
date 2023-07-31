@@ -45,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--total_iters", type=int,  default=500000, help="")
     parser.add_argument("--save_every_iters", type=int,  default=5000, help="")
     parser.add_argument("--disable_inference_in_training", type=lambda x:x.lower() == "true",  default=False, help="Do not do inference, thus it is faster to run first a few iters. It may be useful for debugging ")
+    parser.add_argument("--gradient_accumulation_step", type=int, default=4, help="")
 
 
     args = parser.parse_args()

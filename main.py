@@ -58,7 +58,11 @@ if __name__ == "__main__":
     args.distributed = n_gpu > 1
 
     if args.distributed:
-        torch.cuda.set_device(args.local_rank)
+        if "LOCAL_RANK" in os.environ:
+            torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
+        else:
+            torch.cuda.set_device(args.local_rank)
+            print("Depreciated --local-rank")
         torch.distributed.init_process_group(backend="nccl", init_method="env://")
         synchronize()
 
@@ -67,9 +71,10 @@ if __name__ == "__main__":
     config = OmegaConf.load(args.yaml_file) 
     config.update( vars(args) )
     config.total_batch_size = config.batch_size * n_gpu
+    if "LOCAL_RANK" in os.environ:
+        config.local_rank = int(os.environ["LOCAL_RANK"])
     if args.inpaint_mode:
         config.model.params.inpaint_mode = True
-
 
     trainer = Trainer(config)
     synchronize()

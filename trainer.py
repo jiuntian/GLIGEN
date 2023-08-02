@@ -314,7 +314,7 @@ class Trainer:
         # func return input for grounding tokenizer 
         self.grounding_tokenizer_input = instantiate_from_config(config.grounding_tokenizer_input)
         self.model.grounding_tokenizer_input = self.grounding_tokenizer_input
-        
+      
         # func return input for grounding downsampler  
         self.grounding_downsampler_input = None
         if 'grounding_downsampler_input' in config:
@@ -325,7 +325,6 @@ class Trainer:
 
         if config.distributed:
             self.model = DDP( self.model, device_ids=[config.local_rank], output_device=config.local_rank, broadcast_buffers=False )
-
 
 
 

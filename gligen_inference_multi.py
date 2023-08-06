@@ -357,6 +357,7 @@ def run_batch(meta, config, starting_noise=None):
     # return
 
     # - - - - - prepare models - - - - - #
+    print(f'Loading ckpt from {meta[0]["ckpt"]}')
     model, autoencoder, text_encoder, diffusion, config = load_ckpt(meta[0]["ckpt"])
 
     text_encoder = text_encoder.to(device)

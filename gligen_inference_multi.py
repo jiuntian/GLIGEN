@@ -29,6 +29,8 @@ version = "openai/clip-vit-large-patch14"
 prepare_batch_model = CLIPModel.from_pretrained(version).to(device)
 prepare_batch_processor = CLIPProcessor.from_pretrained(version)
 
+clip_text_feature_dict = torch.load('../clip_phrases_feature_cache.pth', map_location=device)
+
 
 def set_alpha_scale(model, alpha_scale):
     from ldm.modules.attention import GatedCrossAttentionDense, GatedSelfAttentionDense
@@ -127,13 +129,18 @@ def get_clip_feature(model, processor, input, is_image=False):
     else:
         if input == None:
             return None
-        inputs = processor(text=input, return_tensors="pt", padding=True)
-        inputs['input_ids'] = inputs['input_ids'].to(device)
-        inputs['pixel_values'] = torch.ones(1, 3, 224, 224).to(device)  # placeholder
-        inputs['attention_mask'] = inputs['attention_mask'].to(device)
-        outputs = model(**inputs)
-        if which_layer_text == 'before':
-            feature = outputs.text_model_output.pooler_output
+        if input not in clip_text_feature_dict:
+            print(f"CLIP feature for phrase {input} not found, creating")
+            inputs = processor(text=input, return_tensors="pt", padding=True)
+            inputs['input_ids'] = inputs['input_ids'].to(device)
+            inputs['pixel_values'] = torch.ones(1, 3, 224, 224).to(device)  # placeholder
+            inputs['attention_mask'] = inputs['attention_mask'].to(device)
+            outputs = model(**inputs)
+            if which_layer_text == 'before':
+                feature = outputs.text_model_output.pooler_output
+                clip_text_feature_dict[input] = feature
+        else:
+            feature = clip_text_feature_dict[input]
     return feature
 
 
@@ -392,9 +399,11 @@ def run_batch(meta, config, starting_noise=None):
             batch = prepare_batch(meta[i], config.batch_size)
 
         context = text_encoder.encode([meta[i]["prompt"]] * config.batch_size)
-        uc = text_encoder.encode(config.batch_size * [""])
+
         if args.negative_prompt is not None:
             uc = text_encoder.encode(config.batch_size * [args.negative_prompt])
+        else:
+            uc = text_encoder.encode(config.batch_size * [""])
 
         # - - - - - sampler - - - - - #
         alpha_generator_func = partial(alpha_generator, type=meta[i].get("alpha_type"))
@@ -504,11 +513,14 @@ if __name__ == "__main__":
             # ckpt="OUTPUT/hico_finetune/tag03/checkpoint_latest.pth",
             # ckpt="OUTPUT/hico_finetune_v2/tag06/checkpoint_latest.pth",
             # ckpt="OUTPUT/hico_finetune_v3/tag02/checkpoint_latest.pth",
-            ckpt="OUTPUT/gligen-finetune/checkpoint_00200001.pth",
+            # ckpt="OUTPUT/gligen-finetune/checkpoint_00200001.pth",
+            # ckpt="OUTPUT/gligen-finetune/checkpoint_00320001.pth",
+            ckpt="OUTPUT/gligen-finetune/checkpoint_00500000.pth",
             prompt=r['prompt'],
             phrases=r['phrases'],
             locations=r['locations'],
-            alpha_type=[0.3, 0.0, 0.7],
+            # alpha_type=[0.3, 0.0, 0.7],
+            alpha_type=[0.6, 0.0, 0.4],
             save_folder_name=r['save_folder_name'] if not args.subfolder else args.subfolder,
             img_id=r['img_id']
         ))

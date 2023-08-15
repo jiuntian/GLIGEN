@@ -169,10 +169,10 @@ def create_expt_folder_with_auto_resuming(OUTPUT_ROOT, name):
 
 
 class Trainer:
-    def __init__(self, config):
+    def __init__(self, config, device="cuda"):
 
         self.config = config
-        self.device = torch.device("cuda")
+        self.device = torch.device(device)
 
         self.l_simple_weight = 1
         self.name, self.writer, checkpoint = create_expt_folder_with_auto_resuming(config.OUTPUT_ROOT, config.name)

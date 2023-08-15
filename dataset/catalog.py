@@ -141,6 +141,13 @@ class DatasetCatalog:
             ),
         }
 
+        self.HOIInteractionGrounding = {
+            "target": "dataset.hico_interaction_dataset.HICOInteractionDataset",
+            "train_params": dict(
+                dataset_path=os.path.join(ROOT, 'hico_det_clip'),
+            ),
+        }
+
 
 
 

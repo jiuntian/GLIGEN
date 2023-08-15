@@ -463,7 +463,12 @@ def run_batch(meta, config, starting_noise=None):
         image_ids = list(range(start, start + config.batch_size))
         # print(image_ids)
         for image_id, sample in zip(image_ids, samples_fake):
-            img_name = f"{str(int(image_id))}_id_{str(meta[i]['img_id'])}.png"
+            if args.res == "2in1":
+                img_name = meta[i]['file_name']
+            elif args.res == "hico":
+                img_name = f"{str(int(image_id))}_id_{str(meta[i]['img_id'])}.png"
+            else:
+                raise ValueError(f"Invalid res {args.res}")
             sample = torch.clamp(sample, min=-1, max=1) * 0.5 + 0.5
             sample = sample.cpu().numpy().transpose(1, 2, 0) * 255
             sample = Image.fromarray(sample.astype(np.uint8))
@@ -485,6 +490,7 @@ if __name__ == "__main__":
     # parser.add_argument("--negative_prompt", type=str,  default=None, help="")
     parser.add_argument("--no-overwrite", action="store_true", help="do not overwrite")
     parser.add_argument("--subfolder", type=str, default="")
+    parser.add_argument("--res", default="hico", type=str, choices=['hico', '2in1'])
     args = parser.parse_args()
 
     meta_list_new_ = [
@@ -505,7 +511,13 @@ if __name__ == "__main__":
 
     # res = pickle.load(open("../prompt_inputs_hico_det_multi_test.pkl", "rb"))
     # res = pickle.load(open("../prompt_inputs_multi_test_without_a.pkl", "rb"))
-    res = pickle.load(open("../prompt_inputs_multi_test_without_a_full.pkl", "rb"))
+    if args.res == "hico":
+        res = pickle.load(open("../prompt_inputs_multi_test_without_a_full.pkl", "rb"))
+    elif args.res == "2in1":
+        res = pickle.load(open("../prompt_inputs_hico_gligen_test_2in1.pkl", "rb"))
+    else:
+        raise ValueError(f"res {args.res} is not valid")
+    print(f"res: {args.res}")
     meta_list_new = []
     for r in res:
         meta_list_new.append(dict(
@@ -520,10 +532,12 @@ if __name__ == "__main__":
             phrases=r['phrases'],
             locations=r['locations'],
             # alpha_type=[0.3, 0.0, 0.7],
-            alpha_type=[0.6, 0.0, 0.4],
+            alpha_type=[1.0, 0.0, 0.0],
             save_folder_name=r['save_folder_name'] if not args.subfolder else args.subfolder,
-            img_id=r['img_id']
+            img_id=r['img_id'],
+            file_name=r['file_name']
         ))
+    print("1.0")
 
     starting_noise = torch.randn(args.batch_size, 4, 64, 64).to(device)
     starting_noise = None

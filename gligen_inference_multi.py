@@ -505,25 +505,30 @@ if __name__ == "__main__":
 
     # res = pickle.load(open("../prompt_inputs_hico_det_multi_test.pkl", "rb"))
     # res = pickle.load(open("../prompt_inputs_multi_test_without_a.pkl", "rb"))
-    res = pickle.load(open("../prompt_inputs_multi_test_without_a_full.pkl", "rb"))
+    # res = pickle.load(open("../prompt_inputs_multi_test_without_a_full.pkl", "rb"))
+
+    res = pickle.load(open("../prompt_inputs_multi_test_without_a_full_addinteraction.pkl", "rb"))
+    print("prompt_inputs_multi_test_without_a_full_addinteraction.pkl")
+
     meta_list_new = []
     for r in res:
         meta_list_new.append(dict(
-            # ckpt="../gligen_checkpoints/checkpoint_generation_text.pth",
+            ckpt="../gligen_checkpoints/checkpoint_generation_text.pth",
             # ckpt="OUTPUT/hico_finetune/tag03/checkpoint_latest.pth",
             # ckpt="OUTPUT/hico_finetune_v2/tag06/checkpoint_latest.pth",
             # ckpt="OUTPUT/hico_finetune_v3/tag02/checkpoint_latest.pth",
             # ckpt="OUTPUT/gligen-finetune/checkpoint_00200001.pth",
             # ckpt="OUTPUT/gligen-finetune/checkpoint_00320001.pth",
-            ckpt="OUTPUT/gligen-finetune/checkpoint_00500000.pth",
+            # ckpt="OUTPUT/gligen-finetune/checkpoint_00500000.pth",
             prompt=r['prompt'],
             phrases=r['phrases'],
             locations=r['locations'],
             # alpha_type=[0.3, 0.0, 0.7],
-            alpha_type=[0.6, 0.0, 0.4],
+            alpha_type=[1.0, 0.0, 0.0],
             save_folder_name=r['save_folder_name'] if not args.subfolder else args.subfolder,
             img_id=r['img_id']
         ))
+    print("1.0")
 
     starting_noise = torch.randn(args.batch_size, 4, 64, 64).to(device)
     starting_noise = None

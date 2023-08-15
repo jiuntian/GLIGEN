@@ -109,6 +109,7 @@ class HICODataset(BaseDataset):
                 all_boxes.append(torch.tensor([s_x0, s_y0, s_x1, s_y1]) / self.image_size)  # scale to 0-1
                 all_boxes.append(torch.tensor([o_x0, o_y0, o_x1, o_y1]) / self.image_size)  # scale to 0-1
                 all_masks.append(1)
+                all_masks.append(1)
                 all_text_embeddings.append(anno["subject_" + text_embedding_name])
                 all_text_embeddings.append(anno["object_" + text_embedding_name])
                 # all_text_embeddings.append(anno["action_" + text_embedding_name])
@@ -131,7 +132,7 @@ class HICODataset(BaseDataset):
 
         for i, idx in enumerate(wanted_idxs):
             boxes[i*2:i*2+2] = torch.stack(all_boxes[idx*2:idx*2+2])
-            masks[i] = all_masks[idx]
+            masks[i*2:i*2+2] = torch.tensor(all_masks[idx*2:idx*2+2])
             text_embeddings[i*2:i*2+2] = torch.stack(all_text_embeddings[idx*2:idx*2+2])
             image_embeddings[i*2:i*2+2] = torch.stack(all_image_embeddings[idx*2:idx*2+2])
 

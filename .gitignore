@@ -85,3 +85,11 @@ target/
 lib/pycocotools/_mask.c
 lib/nms/cpu_nms.c
 
+.pt
+generation_samples/
+OUTPUT/
+hico_det_clip
+hico_det_clip/
+vg_clip
+vg_clip/
+sd-v1-4.ckpt

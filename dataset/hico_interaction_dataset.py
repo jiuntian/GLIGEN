@@ -111,6 +111,8 @@ class HICOInteractionDataset(BaseDataset):
                 all_boxes.append(torch.tensor([min(s_x0, o_x0), min(s_y0, o_y0),
                                                max(s_x1, o_x1), max(s_y1, o_y1)]) / self.image_size)  # scale to 0-1
                 all_masks.append(1)
+                all_masks.append(1)
+                all_masks.append(1)
                 all_text_embeddings.append(anno["subject_" + text_embedding_name])
                 all_text_embeddings.append(anno["object_" + text_embedding_name])
                 all_text_embeddings.append(anno["action_" + text_embedding_name])
@@ -125,7 +127,7 @@ class HICOInteractionDataset(BaseDataset):
         wanted_idxs = wanted_idxs[0:self.max_boxes_per_data]
 
         boxes = torch.zeros(self.max_boxes_per_data*3, 4)
-        masks = torch.zeros(self.max_boxes_per_data*1)
+        masks = torch.zeros(self.max_boxes_per_data*3)
         text_embeddings = torch.zeros(self.max_boxes_per_data*3, self.embedding_len)
         image_embeddings = torch.zeros(self.max_boxes_per_data*3, self.embedding_len)
 
@@ -135,7 +137,7 @@ class HICOInteractionDataset(BaseDataset):
 
         for i, idx in enumerate(wanted_idxs):
             boxes[i*3:i*3+3] = torch.stack(all_boxes[idx*3:idx*3+3])
-            masks[i] = all_masks[idx]
+            masks[i*3:i*3+3] = torch.tensor(all_masks[idx*3:idx*3+3])
             text_embeddings[i*3:i*3+3] = torch.stack(all_text_embeddings[idx*3:idx*3+3])
             image_embeddings[i*3:i*3+3] = torch.stack(all_image_embeddings[idx*3:idx*3+3])
 

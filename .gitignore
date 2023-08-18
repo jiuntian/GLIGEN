@@ -93,3 +93,4 @@ hico_det_clip/
 vg_clip
 vg_clip/
 sd-v1-4.ckpt
+*.DS_Store

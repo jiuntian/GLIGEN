@@ -146,7 +146,10 @@ class FrozenCLIPEmbedder(AbstractEncoder):
     def __init__(self, version="openai/clip-vit-large-patch14", device="cuda", max_length=77):
         super().__init__()
         self.tokenizer = CLIPTokenizer.from_pretrained(version)
+        from transformers import logging as tl
+        tl.set_verbosity_error()  # ignore the annoying warning when using CLIPTextModel
         self.transformer = CLIPTextModel.from_pretrained(version)
+        tl.set_verbosity_warning()
         self.device = device
         self.max_length = max_length
         self.freeze()

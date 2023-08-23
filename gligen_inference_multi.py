@@ -1,4 +1,5 @@
 import argparse
+import random
 import glob
 from typing import List, Dict
 
@@ -490,7 +491,9 @@ if __name__ == "__main__":
     # parser.add_argument("--negative_prompt", type=str,  default=None, help="")
     parser.add_argument("--no-overwrite", action="store_true", help="do not overwrite")
     parser.add_argument("--subfolder", type=str, default="")
-    parser.add_argument("--res", default="hico", type=str, choices=['hico', '2in1'])
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--scheduled-sampling", type=float, default=1.0)
+    parser.add_argument("--res", default="hico", type=str, choices=['hico', '2in1', 'addinteraction'])
     args = parser.parse_args()
 
     meta_list_new_ = [
@@ -531,20 +534,31 @@ if __name__ == "__main__":
             # ckpt="OUTPUT/gligen-finetune/checkpoint_00200001.pth",
             # ckpt="OUTPUT/gligen-finetune/checkpoint_00320001.pth",
             # ckpt="OUTPUT/gligen-finetune/checkpoint_00500000.pth",
-            ckpt="OUTPUT/gligen-finetune-v5/checkpoint_00100001.pth",
+            # ckpt="OUTPUT/gligen-finetune-v5/checkpoint_00100001.pth",
+            # ckpt="OUTPUT/gligen-finetune-v5/checkpoint_00200001.pth",
+            # ckpt="OUTPUT/ft_addinteraction/checkpoint_00125001.pth",
+            # ckpt="OUTPUT/gligen-finetune-v5/checkpoint_00300001.pth",
+            ckpt="OUTPUT/gligen-finetune-v5/checkpoint_00400001.pth",
             prompt=r['prompt'],
             phrases=r['phrases'],
             locations=r['locations'],
             # alpha_type=[0.3, 0.0, 0.7],
-            alpha_type=[1.0, 0.0, 0.0],
+            alpha_type=[args.scheduled_sampling, 0.0, 1-args.scheduled_sampling],
             save_folder_name=r['save_folder_name'] if not args.subfolder else args.subfolder,
             img_id=r['img_id'],
             file_name=r['file_name']
         ))
-    print("1.0")
+    print(f"scheduled sampling: {args.scheduled_sampling}")
+    assert 1 >= args.scheduled_sampling >= 0, "scheduled sampling must be within 0 to 1"
 
     starting_noise = torch.randn(args.batch_size, 4, 64, 64).to(device)
     starting_noise = None
+
+    # ------------- seeding -------------
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+    random.seed(args.seed)
+
     # for meta in meta_list:
     #     run(meta, args, starting_noise)
     run_batch(meta_list_new, args, starting_noise)

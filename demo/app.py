@@ -389,7 +389,11 @@ def draw(task, input, grounding_texts, new_image_trigger, state):
         mask = np.array(mask)
 
     if mask.sum() == 0 and task != "Grounded Inpainting":
-        state = {}
+        if "example" in state and state['example']:
+            # print(state)
+            pass
+        else:
+            state = {}
 
     if task != 'Grounded Inpainting':
         image = None
@@ -579,7 +583,7 @@ with Blocks(
                 out_gen_3 = gr.Image(type="pil", visible=False, show_label=False)
                 out_gen_4 = gr.Image(type="pil", visible=False, show_label=False)
 
-        state = gr.State({})
+        state = gr.State({}, label="State")
 
         class Controller:
             def __init__(self):
@@ -633,7 +637,7 @@ with Blocks(
             draw,
             inputs=[task, sketch_pad, grounding_instruction, sketch_pad_resize_trigger, state],
             outputs=[out_imagebox, sketch_pad_resize_trigger, image_scale, state],
-            queue=False,
+            queue=True,
         )
         grounding_instruction.change(
             draw,
@@ -708,6 +712,20 @@ with Blocks(
                 [
                     "images/blank.png",
                     "Grounded Generation",
+                    "best quality, a person is holding a bag, another person is talking on a cell phone",
+                    "person;bag; another person;cell phone",
+                    {
+                        "boxes": [[22, 28, 174, 491],
+                                  [126, 193, 275, 296],
+                                  [247, 17, 392, 482],
+                                  [256, 56, 311, 159],
+                                  ],
+                        "example": True
+                    },
+                ]
+                [
+                    "images/blank.png",
+                    "Grounded Generation",
                     "a dog and an apple",
                     "a dog;an apple",
                 ],
@@ -754,8 +772,8 @@ with Blocks(
                     "a santa claus shirt; a Christmas gift box",
                 ],
             ],
-            inputs=[sketch_pad, task, language_instruction, grounding_instruction],
-            outputs=None,
+            inputs=[sketch_pad, task, language_instruction, grounding_instruction, state],
+            outputs=[out_imagebox, state],
             fn=None,
             cache_examples=False,
         )

@@ -366,6 +366,9 @@ def run_batch(meta, config, starting_noise=None):
 
     # - - - - - prepare models - - - - - #
     print(f'Loading ckpt from {meta[0]["ckpt"]}')
+    if 'addinteraction' in meta[0]['ckpt']:
+        print("add_interaction")
+        assert args.res == 'addinteraction'
     model, autoencoder, text_encoder, diffusion, config = load_ckpt(meta[0]["ckpt"])
 
     text_encoder = text_encoder.to(device)
@@ -466,7 +469,7 @@ def run_batch(meta, config, starting_noise=None):
         for image_id, sample in zip(image_ids, samples_fake):
             if args.res == "2in1":
                 img_name = meta[i]['file_name']
-            elif args.res == "hico":
+            elif args.res in ["hico", "addinteraction"]:
                 img_name = f"{str(int(image_id))}_id_{str(meta[i]['img_id'])}.png"
             else:
                 raise ValueError(f"Invalid res {args.res}")
@@ -538,7 +541,9 @@ if __name__ == "__main__":
             # ckpt="OUTPUT/gligen-finetune-v5/checkpoint_00200001.pth",
             # ckpt="OUTPUT/ft_addinteraction/checkpoint_00125001.pth",
             # ckpt="OUTPUT/gligen-finetune-v5/checkpoint_00300001.pth",
-            ckpt="OUTPUT/gligen-finetune-v5/checkpoint_00400001.pth",
+            # ckpt="OUTPUT/gligen-finetune-v5/checkpoint_00400001.pth",
+            ckpt="OUTPUT/gligen-finetune-v5/checkpoint_00500000.pth",
+            # ckpt="OUTPUT/ft_addinteraction/checkpoint_00400001.pth",
             prompt=r['prompt'],
             phrases=r['phrases'],
             locations=r['locations'],
